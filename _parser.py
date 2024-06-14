@@ -16,15 +16,18 @@ class Parser:
         self._current_token = None
         self._peek_token = None
 
+        self.next_token()
+        self.next_token()
+
     def next_token(self):
         self._current_token = self._peek_token
         self._peek_token = self.lexer.next_token()
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
         program = _ast.Program()
-        while self._current_token != _token.TokenType.EOF:
-            statement = self.parse_statement()
-            if not statement:
+        while self._current_token.token_type not in (_token.TokenType.EOF, _token.TokenType.ILLEGAL):
+            statement = self._parse_statement()
+            if statement:
                 program.statements.append(statement)
             self.next_token()
         return program
@@ -48,7 +51,11 @@ class Parser:
         return self._peek_token.token_type == token_type
 
     def _parse_let_statement(self) -> typing.Optional[_ast.LetStatement]:
-        statement = _ast.LetStatement(token=self._current_token, name=_ast.Identifier(token=self._current_token, value=self._current_token.literal))
+        statement = _ast.LetStatement(token=self._current_token, name=_ast.Identifier(token=self._current_token, value=self._current_token.literal), value=None)
         if not self._expect_peek(_token.TokenType.IDENT):
             return None
+
+        # skip the expression for now
+        while self._current_token.token_type != _token.TokenType.SEMICOLON:
+            self.next_token()
         return statement
