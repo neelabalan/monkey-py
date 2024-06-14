@@ -4,16 +4,14 @@
 # correct syntax in the process. […] The parser is often preceded by a separate lexical
 # analyser, which creates tokens from the sequence of input characters
 
-from _lexer import Lexer
-from _token import TokenType
+import _lexer
+import _token
 import typing
-from _ab_syn_tree import Program
-from _ab_syn_tree import Statement
-from _ab_syn_tree import LetStatement
+import _abstract_syntax_tree as _ast
 
 
 class Parser:
-    def __init__(self, lexer: Lexer):
+    def __init__(self, lexer: _lexer.Lexer):
         self.lexer = lexer
         self._current_token = None
         self._peek_token = None
@@ -22,19 +20,35 @@ class Parser:
         self._current_token = self._peek_token
         self._peek_token = self.lexer.next_token()
 
-    def parse_program(self) -> typing.Optional[Program]:
-        program = Program()
-        while self._current_token != TokenType.EOF:
+    def parse_program(self) -> typing.Optional[_ast.Program]:
+        program = _ast.Program()
+        while self._current_token != _token.TokenType.EOF:
             statement = self.parse_statement()
             if not statement:
                 program.statements.append(statement)
             self.next_token()
         return program
 
-    def parse_statement(self) -> typing.Optional[Statement]:
-        if self._current_token.token_type == TokenType.LET:
-            return self.parse_let_statement()
+    def _parse_statement(self) -> typing.Optional[_ast.Statement]:
+        if self._current_token.token_type == _token.TokenType.LET:
+            return self._parse_let_statement()
+        elif self._current_token.token_type == _token.TokenType.RETURN:
+            return self._parse_return_statement()
+        else:
+            return self._parse_expression_statement()
 
-    def parse_let_statement(self) -> LetStatement:
-        ...
+    def _parse_expression_statement(self) -> _ast.Expression:
+        # statement = _ast.ExpressionStatement(token=self._current_token) 
+        pass
 
+    def _parse_return_statement(self):
+        pass
+
+    def _expect_peek(self, token_type: _token.TokenType) -> bool:
+        return self._peek_token.token_type == token_type
+
+    def _parse_let_statement(self) -> typing.Optional[_ast.LetStatement]:
+        statement = _ast.LetStatement(token=self._current_token, name=_ast.Identifier(token=self._current_token, value=self._current_token.literal))
+        if not self._expect_peek(_token.TokenType.IDENT):
+            return None
+        return statement

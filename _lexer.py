@@ -1,6 +1,4 @@
-from _token import TokenType
-from _token import Token
-from _token import keyword_map
+import _token
 from datastructure import Char
 import typing
 # import types #MappingProxyType
@@ -31,9 +29,9 @@ class Lexer:
         ch = self._char
         if self._peek_char() == '=':
             self._read_char()
-            token = Token(literal=ch+self._char, token_type=TokenType.NOT_EQ)
+            token = _token.Token(literal=ch+self._char, token_type=_token.TokenType.NOT_EQ)
         else:
-            token = Token(literal=ch, token_type=TokenType.BANG) 
+            token = _token.Token(literal=ch, token_type=_token.TokenType.BANG) 
         return token
 
     def handle_assign_operator(self):
@@ -41,21 +39,21 @@ class Lexer:
         ch = self._char
         if self._peek_char() == '=':
             self._read_char()
-            token = Token(literal=ch+self._char, token_type=TokenType.EQ)
+            token = _token.Token(literal=ch+self._char, token_type=_token.TokenType.EQ)
         else:
-            token = Token(literal=ch, token_type=TokenType.ASSIGN) 
+            token = _token.Token(literal=ch, token_type=_token.TokenType.ASSIGN) 
         return token
 
-    def token_lookup(self, key: Char) -> Token:
-        simple_token_type_map: dict[Char, TokenType] = {
-            Char("+"): TokenType.PLUS,
-            Char("("): TokenType.LPAREN,
-            Char(")"): TokenType.RPAREN,
-            Char("{"): TokenType.LBRACE,
-            Char("}"): TokenType.RBRACE,
-            Char(","): TokenType.COMMA,
-            Char(";"): TokenType.SEMICOLON,
-            Char(""): TokenType.EOF,
+    def token_lookup(self, key: Char) -> _token.Token:
+        simple_token_type_map: dict[Char, _token.TokenType] = {
+            Char("+"): _token.TokenType.PLUS,
+            Char("("): _token.TokenType.LPAREN,
+            Char(")"): _token.TokenType.RPAREN,
+            Char("{"): _token.TokenType.LBRACE,
+            Char("}"): _token.TokenType.RBRACE,
+            Char(","): _token.TokenType.COMMA,
+            Char(";"): _token.TokenType.SEMICOLON,
+            Char(""): _token.TokenType.EOF,
         }
         function_token_map: dict[Char, typing.Callable] = {
             Char("!"): self.handle_not_operator,
@@ -63,7 +61,7 @@ class Lexer:
         }
         token = None
         if token_type := simple_token_type_map.get(key):
-            token = Token(literal=str(key), token_type = token_type)
+            token = _token.Token(literal=str(key), token_type = token_type)
         else:
             token_handler_func = function_token_map.get(key)
             if token_handler_func:
@@ -81,20 +79,20 @@ class Lexer:
         else:
             return self.source_code[self._read_position]
 
-    def next_token(self) -> Token:
+    def next_token(self) -> _token.Token:
         self.skip_whitespace()
         token = self.token_lookup(self._char)
         if not token:
             if self._char.isalpha():
                 identifier = self._read_identifier()
-                keyword = keyword_map.get(identifier)
-                return Token(literal=identifier, token_type=keyword) if keyword else Token(literal=identifier, token_type=TokenType.IDENT)
+                keyword = _token.keyword_map.get(identifier)
+                return _token.Token(literal=identifier, token_type=keyword) if keyword else _token.Token(literal=identifier, token_type=_token.TokenType.IDENT)
             elif self._char.isdigit():
-                return Token(literal=self._read_number(), token_type=TokenType.INT)
+                return _token.Token(literal=self._read_number(), token_type=_token.TokenType.INT)
             elif self._char.strip() == Char(""):
-                return TokenType(literal="", token_type=TokenType.EOF)
+                return _token.TokenType(literal="", token_type=_token.TokenType.EOF)
             else:
-                return Token(literal=self._char, token_type=TokenType.ILLEGAL)
+                return _token.Token(literal=self._char, token_type=_token.TokenType.ILLEGAL)
         self._read_char()
         return token
 
