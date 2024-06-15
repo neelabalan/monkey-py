@@ -1,5 +1,4 @@
 import abc
-import io
 
 from _token import Token
 
@@ -47,10 +46,10 @@ class Program(BaseNode):
             return ''
 
     def to_string(self) -> str:
-        out = io.StringIO()
+        result = ''
         for s in self.statements:
-            out.write(s.to_string())
-        return out.getvalue()
+            result += s.to_string()
+        return result
 
 
 class Identifier(Expression):
@@ -76,14 +75,11 @@ class LetStatement(Statement):
         return self.token.literal
 
     def to_string(self) -> str:
-        out = io.StringIO()
-        out.write(self.token_literal() + ' ')
-        out.write(self.name.to_string())
-        out.write(' = ')
+        result = self.token_literal() + ' ' + self.name.to_string() + ' = '
         if self.value:
-            out.write(self.value.to_string())
-        out.write(';')
-        return out.getvalue()
+            result += self.value.to_string()
+        result += ';'
+        return result
 
 
 class ReturnStatement(Statement):
@@ -95,14 +91,13 @@ class ReturnStatement(Statement):
         return self.token.literal
 
     def to_string(self) -> str:
-        out = io.StringIO()
-        out.write(self.token_literal() + ' ')
+        result = self.token_literal() + ' '
 
         if not self.return_value:
-            out.write(self.return_value.to_string())
+            result += self.return_value.to_string()
 
-        out.write(';')
-        return out.getvalue()
+        result += ';'
+        return result
 
 
 class ExpressionStatement(Statement):

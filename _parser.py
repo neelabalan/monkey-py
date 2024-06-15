@@ -47,7 +47,14 @@ class Parser:
         pass
 
     def _parse_return_statement(self):
-        pass
+        token = self._current_token
+        self.next_token()
+
+        return_value = self._parse_expression_statement()
+
+        if self._peek_token.token_type == _token.TokenType.SEMICOLON:
+            self.next_token()
+        return _ast.ReturnStatement(token, return_value)
 
     def _expect_peek(self, token_type: _token.TokenType) -> bool:
         if self._peek_token.token_type == token_type:
