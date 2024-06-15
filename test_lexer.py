@@ -3,7 +3,7 @@ from _token import TokenType
 
 
 def test_next_token():
-    input = "=+()\{\},;"
+    input = '=+()\{\},;'
     lexer = Lexer(input)
 
     assert lexer.next_token().token_type == TokenType.ASSIGN
@@ -31,7 +31,7 @@ let result = add(five, ten);
 
 
 def test_function_calling():
-    lexer = Lexer("== !=")
+    lexer = Lexer('== !=')
     assert lexer.next_token().token_type == TokenType.EQ
     assert lexer.next_token().token_type == TokenType.NOT_EQ
 

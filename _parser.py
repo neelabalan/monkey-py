@@ -4,10 +4,11 @@
 # correct syntax in the process. […] The parser is often preceded by a separate lexical
 # analyser, which creates tokens from the sequence of input characters
 
+import typing
+
+import _abstract_syntax_tree as _ast
 import _lexer
 import _token
-import typing
-import _abstract_syntax_tree as _ast
 
 
 class Parser:
@@ -41,7 +42,7 @@ class Parser:
             return self._parse_expression_statement()
 
     def _parse_expression_statement(self) -> _ast.Expression:
-        # statement = _ast.ExpressionStatement(token=self._current_token) 
+        # statement = _ast.ExpressionStatement(token=self._current_token)
         pass
 
     def _parse_return_statement(self):
@@ -51,7 +52,11 @@ class Parser:
         return self._peek_token.token_type == token_type
 
     def _parse_let_statement(self) -> typing.Optional[_ast.LetStatement]:
-        statement = _ast.LetStatement(token=self._current_token, name=_ast.Identifier(token=self._current_token, value=self._current_token.literal), value=None)
+        statement = _ast.LetStatement(
+            token=self._current_token,
+            name=_ast.Identifier(token=self._current_token, value=self._current_token.literal),
+            value=None,
+        )
         if not self._expect_peek(_token.TokenType.IDENT):
             return None
 

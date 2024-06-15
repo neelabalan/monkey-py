@@ -1,6 +1,7 @@
 import abc
-from _token import Token
 import io
+
+from _token import Token
 
 
 class AbstractNode(abc.ABC):
@@ -12,6 +13,7 @@ class AbstractNode(abc.ABC):
     def to_string(self) -> str:
         pass
 
+
 class BaseNode(AbstractNode):
     def __init__(self, token: Token):
         self.token = token
@@ -21,7 +23,6 @@ class BaseNode(AbstractNode):
 
     def to_string(self) -> str:
         return self.token.token_literal
-
 
 
 class Statement(BaseNode):
@@ -43,7 +44,7 @@ class Program(BaseNode):
         if len(self.statements) > 0:
             return self.statements[0].token_literal()
         else:
-            return ""
+            return ''
 
     def to_string(self) -> str:
         out = io.StringIO()
@@ -76,13 +77,14 @@ class LetStatement(Statement):
 
     def to_string(self) -> str:
         out = io.StringIO()
-        out.write(self.token_literal() + " ")
+        out.write(self.token_literal() + ' ')
         out.write(self.name.to_string())
-        out.write(" = ")
+        out.write(' = ')
         if self.value:
             out.write(self.value.to_string())
-        out.write(";")
+        out.write(';')
         return out.getvalue()
+
 
 class ReturnStatement(Statement):
     def __init__(self, token: Token, return_value: Expression):
@@ -94,13 +96,14 @@ class ReturnStatement(Statement):
 
     def to_string(self) -> str:
         out = io.StringIO()
-        out.write(self.token_literal() + " ")
+        out.write(self.token_literal() + ' ')
 
         if not self.return_value:
             out.write(self.return_value.to_string())
 
-        out.write(";")
+        out.write(';')
         return out.getvalue()
+
 
 class ExpressionStatement(Statement):
     def __init__(self, token: Token, expression: Expression):
@@ -113,4 +116,4 @@ class ExpressionStatement(Statement):
     def to_string(self) -> str:
         if not self.expression:
             return self.expression.to_string()
-        return ""
+        return ''
