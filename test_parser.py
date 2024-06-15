@@ -1,3 +1,5 @@
+import pytest
+
 import _abstract_syntax_tree as _ast
 import _lexer
 import _parser
@@ -18,3 +20,14 @@ def test_let_statements():
         assert statement.token_literal() == 'let'
         assert isinstance(statement, _ast.LetStatement)
         assert statement.name.token_literal() == identifers[idx]
+
+def test_let_statement_errors():
+    error_cases = [
+        "let = 5",
+        "let 123 = 123"
+    ]
+    for error_case in error_cases:
+        lexer = _lexer.Lexer(error_case)
+        parser = _parser.Parser(lexer)
+        with pytest.raises(SyntaxError):
+            _ = parser.parse_program()
