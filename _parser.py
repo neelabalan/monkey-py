@@ -34,12 +34,13 @@ class Parser:
         return program
 
     def _parse_statement(self) -> typing.Optional[_ast.Statement]:
-        if self._current_token.token_type == _token.TokenType.LET:
-            return self._parse_let_statement()
-        elif self._current_token.token_type == _token.TokenType.RETURN:
-            return self._parse_return_statement()
-        else:
-            return self._parse_expression_statement()
+        match self._current_token.token_type:
+            case _token.TokenType.LET:
+                return self._parse_let_statement()
+            case _token.TokenType.RETURN:
+                return self._parse_return_statement()
+            case _:
+                return self._parse_expression_statement()
 
     def _parse_expression_statement(self) -> _ast.Expression:
         # statement = _ast.ExpressionStatement(token=self._current_token)
