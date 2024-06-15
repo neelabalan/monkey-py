@@ -49,18 +49,22 @@ class Parser:
         pass
 
     def _expect_peek(self, token_type: _token.TokenType) -> bool:
-        return self._peek_token.token_type == token_type
+        if self._peek_token.token_type == token_type:
+            self.next_token()
+            return True
+        else:
+            raise SyntaxError(f'Unexpected {token_type}')
 
     def _parse_let_statement(self) -> typing.Optional[_ast.LetStatement]:
-        statement = _ast.LetStatement(
-            token=self._current_token,
-            name=_ast.Identifier(token=self._current_token, value=self._current_token.literal),
-            value=None,
-        )
+        token = self._current_token
+
         if not self._expect_peek(_token.TokenType.IDENT):
             return None
+
+        identifier = _ast.Identifier(token=self._current_token, value=self._current_token.literal)
 
         # skip the expression for now
         while self._current_token.token_type != _token.TokenType.SEMICOLON:
             self.next_token()
+        statement = _ast.LetStatement(token=token, name=identifier, value=None)
         return statement

@@ -17,3 +17,4 @@ def test_let_statements():
     for idx, statement in enumerate(program.statements):
         assert statement.token_literal() == 'let'
         assert isinstance(statement, _ast.LetStatement)
+        assert statement.name.token_literal() == identifers[idx]
