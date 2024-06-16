@@ -4,11 +4,24 @@
 # correct syntax in the process. […] The parser is often preceded by a separate lexical
 # analyser, which creates tokens from the sequence of input characters
 
+import enum
+import types
 import typing
 
 import _abstract_syntax_tree as _ast
 import _lexer
 import _token
+
+
+class Precedence(enum.IntEnum):
+    LOWEST = 1
+    # ==
+    EQUALS = 2
+    LESSGREATER = 3
+    SUM = 4
+    PRODUCT = 5
+    PREFIX = 6
+    CALL = 7
 
 
 class Parser:
@@ -19,6 +32,67 @@ class Parser:
 
         self.next_token()
         self.next_token()
+
+        self._register_infix_parse_functions()
+        self._register_prefix_parse_functions()
+
+    def _register_prefix_parse_functions(self):
+        self.prefix_parse_functions = types.MappingProxyType(
+            {
+                _token.TokenType.IDENT: self._parse_identifier,
+                _token.TokenType.INT: self._parse_integer_literal,
+                _token.TokenType.BANG: self._parse_prefix_expression,
+                _token.TokenType.MINUS: self._parse_prefix_expression,
+                _token.TokenType.TRUE: self._parse_boolean,
+                _token.TokenType.FALSE: self._parse_boolean,
+                _token.TokenType.LPAREN: self._parse_group_expression,
+                _token.TokenType.IF: self._parse_if_expression,
+                _token.TokenType.FUNCTION: self._parse_function_literal,
+                _token.TokenType.STRING: self._parse_string_literal,
+                _token.TokenType.LBRACKET: self._parse_array_literal,
+                _token.TokenType.LBRACE: self._parse_hash_literal,
+            }
+        )
+
+    def _register_infix_parse_functions(self):
+        self.infix_parse_functions = types.MappingProxyType(
+            {
+                _token.TokenType.PLUS: self._parse_infix_expression,
+                _token.TokenType.MINUS: self._parse_infix_expression,
+                _token.TokenType.SLASH: self._parse_infix_expression,
+                _token.TokenType.ASTERISK: self._parse_infix_expression,
+                _token.TokenType.EQ: self._parse_infix_expression,
+                _token.TokenType.NOT_EQ: self._parse_infix_expression,
+                _token.TokenType.LT: self._parse_infix_expression,
+                _token.TokenType.GT: self._parse_infix_expression,
+                _token.TokenType.LPAREN: self._parse_call_expression,
+                _token.TokenType.LBRACKET: self._parse_index_expression,
+            }
+        )
+
+    def _parse_integer_literal(self): ...
+
+    def _parse_prefix_expression(self): ...
+
+    def _parse_boolean(self): ...
+
+    def _parse_group_expression(self): ...
+
+    def _parse_if_expression(self): ...
+
+    def _parse_function_literal(self): ...
+
+    def _parse_string_literal(self): ...
+
+    def _parse_array_literal(self): ...
+
+    def _parse_hash_literal(self): ...
+
+    def _parse_infix_expression(self): ...
+
+    def _parse_call_expression(sefl): ...
+
+    def _parse_index_expression(self): ...
 
     def next_token(self):
         self._current_token = self._peek_token
@@ -42,9 +116,21 @@ class Parser:
             case _:
                 return self._parse_expression_statement()
 
+    def _parse_expression(self, precendence: Precedence) -> _ast.Expression:
+        prefix = self.prefix_parse_functions.get(self._current_token.token_type)
+        if not prefix:
+            return None
+        left_exp = prefix()
+        return left_exp
+
+    def _parse_identifier(self) -> _ast.Expression:
+        return _ast.Identifier(self._current_token, value=self._current_token.literal)
+
     def _parse_expression_statement(self) -> _ast.Expression:
-        # statement = _ast.ExpressionStatement(token=self._current_token)
-        pass
+        statement = _ast.ExpressionStatement(token=self._current_token, expression=self._parse_expression(Precedence.LOWEST))
+        if self._peek_token.token_type == _token.TokenType.SEMICOLON:
+            self.next_token()
+        return statement
 
     def _parse_return_statement(self):
         token = self._current_token

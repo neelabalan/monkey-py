@@ -12,6 +12,7 @@ class TokenType(enum.Enum):
     # Identifiers + literals
     IDENT = 'IDENT'  # add, foobar, x, y, ...
     INT = 'INT'  # 1343456
+    STRING = 'STRING'
 
     # Operators
     ASSIGN = '='
@@ -34,6 +35,9 @@ class TokenType(enum.Enum):
     RPAREN = ')'
     LBRACE = '{'
     RBRACE = '}'
+
+    LBRACKET = '['
+    RBRACKET = ']'
 
     # Keywords
     FUNCTION = 'FUNCTION'
