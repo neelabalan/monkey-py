@@ -112,3 +112,8 @@ class ExpressionStatement(Statement):
         if not self.expression:
             return self.expression.to_string()
         return ''
+
+class IntegerLiteral(BaseNode):
+    def __init__(self, token: Token, value: int):
+        self.token = token
+        self.value = value

@@ -1,39 +1,38 @@
-from _lexer import Lexer
-from _token import TokenType
-
+import _lexer
+import _token
 
 def test_next_token():
     input = '=+()\{\},;'
-    lexer = Lexer(input)
+    lexer = _lexer.Lexer(input)
 
-    assert lexer.next_token().token_type == TokenType.ASSIGN
-    assert lexer.next_token().token_type == TokenType.PLUS
+    assert lexer.next_token().token_type == _token.TokenType.ASSIGN
+    assert lexer.next_token().token_type == _token.TokenType.PLUS
 
 
 def test_complex_token():
     source_code = """
-let five = 5;
-let ten = 10;
+    let five = 5;
+    let ten = 10;
 
-let add = fn(x, y) {
-    x + y;
-};
+    let add = fn(x, y) {
+        x + y;
+    };
 
-let result = add(five, ten);
-"""
-    lexer = Lexer(source_code)
-    assert lexer.next_token().token_type == TokenType.LET
-    assert lexer.next_token().token_type == TokenType.IDENT
-    assert lexer.next_token().token_type == TokenType.ASSIGN
-    assert lexer.next_token().token_type == TokenType.INT
-    assert lexer.next_token().token_type == TokenType.SEMICOLON
-    assert lexer.next_token().token_type == TokenType.LET
+    let result = add(five, ten);
+    """
+    lexer = _lexer.Lexer(source_code)
+    assert lexer.next_token().token_type == _token.TokenType.LET
+    assert lexer.next_token().token_type == _token.TokenType.IDENT
+    assert lexer.next_token().token_type == _token.TokenType.ASSIGN
+    assert lexer.next_token().token_type == _token.TokenType.INT
+    assert lexer.next_token().token_type == _token.TokenType.SEMICOLON
+    assert lexer.next_token().token_type == _token.TokenType.LET
 
 
 def test_function_calling():
-    lexer = Lexer('== !=')
-    assert lexer.next_token().token_type == TokenType.EQ
-    assert lexer.next_token().token_type == TokenType.NOT_EQ
+    lexer = _lexer.Lexer('== !=')
+    assert lexer.next_token().token_type == _token.TokenType.EQ
+    assert lexer.next_token().token_type == _token.TokenType.NOT_EQ
 
 
 # def test_invalid_inputs():

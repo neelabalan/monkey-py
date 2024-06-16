@@ -10,7 +10,7 @@ def test_let_statements():
     let x = 5;
     let y = 10;
     let foobar = 131313;
-"""
+    """
     lexer = _lexer.Lexer(source)
     parser = _parser.Parser(lexer)
     program = parser.parse_program()
@@ -21,13 +21,20 @@ def test_let_statements():
         assert isinstance(statement, _ast.LetStatement)
         assert statement.name.token_literal() == identifers[idx]
 
+
 def test_let_statement_errors():
-    error_cases = [
-        "let = 5",
-        "let 123 = 123"
-    ]
+    error_cases = ['let = 5', 'let 123 = 123']
     for error_case in error_cases:
         lexer = _lexer.Lexer(error_case)
         parser = _parser.Parser(lexer)
         with pytest.raises(SyntaxError):
             _ = parser.parse_program()
+
+
+def test_int_parsing():
+    lexer = _lexer.Lexer('5;')
+    parser = _parser.Parser(lexer)
+    program = parser.parse_program()
+    expression_statement = program.statements[0]
+    assert isinstance(expression_statement, _ast.ExpressionStatement)
+    assert isinstance(expression_statement.expression, _ast.IntegerLiteral)

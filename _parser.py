@@ -70,7 +70,8 @@ class Parser:
             }
         )
 
-    def _parse_integer_literal(self): ...
+    def _parse_integer_literal(self):
+        return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
 
     def _parse_prefix_expression(self): ...
 
@@ -99,7 +100,7 @@ class Parser:
         self._peek_token = self.lexer.next_token()
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
-        program = _ast.Program()
+        program = _ast.Program([])
         while self._current_token.token_type not in (_token.TokenType.EOF, _token.TokenType.ILLEGAL):
             statement = self._parse_statement()
             if statement:
