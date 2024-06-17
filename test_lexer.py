@@ -1,8 +1,9 @@
 import _lexer
 import _token
 
+
 def test_next_token():
-    input = '=+()\{\},;'
+    input = '=+()},;'
     lexer = _lexer.Lexer(input)
 
     assert lexer.next_token().token_type == _token.TokenType.ASSIGN

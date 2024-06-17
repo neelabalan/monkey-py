@@ -84,14 +84,6 @@ class Parser:
             }
         )
 
-    def _parse_integer_literal(self):
-        return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
-
-    def _parse_prefix_expression(self):
-        current_token = self._current_token
-        self.next_token()
-        return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self._parse_expression(Precedence.PREFIX))
-
     def _parse_boolean(self): ...
 
     def _parse_group_expression(self): ...
@@ -106,11 +98,28 @@ class Parser:
 
     def _parse_hash_literal(self): ...
 
-    def _parse_infix_expression(self): ...
-
     def _parse_call_expression(sefl): ...
 
     def _parse_index_expression(self): ...
+
+    def _parse_integer_literal(self):
+        return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
+
+    def _parse_prefix_expression(self):
+        current_token = self._current_token
+        self.next_token()
+        return _ast.PrefixExpression(
+            current_token, operator=current_token.literal, right=self._parse_expression(Precedence.PREFIX)
+        )
+
+    def _parse_infix_expression(self, left: _ast.Expression):
+        current_token = self._current_token
+        precedence = precendence_map.get(self._current_token.token_type) or Precedence.LOWEST
+        self.next_token()
+
+        return _ast.InfixExpression(
+            token=current_token, operator=current_token.literal, left=left, right=self._parse_expression(precedence)
+        )
 
     def next_token(self):
         self._current_token = self._peek_token
@@ -139,13 +148,24 @@ class Parser:
         if not prefix:
             return None
         left_exp = prefix()
+
+        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(
+            self._peek_token.token_type, Precedence.LOWEST
+        ):
+            infix = self.infix_parse_functions.get(self._peek_token.token_type)
+            if not infix:
+                return left_exp
+            self.next_token()
+            left_exp = infix(left_exp)
         return left_exp
 
     def _parse_identifier(self) -> _ast.Expression:
         return _ast.Identifier(self._current_token, value=self._current_token.literal)
 
     def _parse_expression_statement(self) -> _ast.Expression:
-        statement = _ast.ExpressionStatement(token=self._current_token, expression=self._parse_expression(Precedence.LOWEST))
+        statement = _ast.ExpressionStatement(
+            token=self._current_token, expression=self._parse_expression(Precedence.LOWEST)
+        )
         if self._peek_token.token_type == _token.TokenType.SEMICOLON:
             self.next_token()
         return statement

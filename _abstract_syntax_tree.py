@@ -18,10 +18,10 @@ class BaseNode(AbstractNode):
         self.token = token
 
     def token_literal(self) -> str:
-        return self.token.token_literal
+        return self.token.literal
 
     def to_string(self) -> str:
-        return self.token.token_literal
+        return self.token.literal
 
 
 class Statement(BaseNode):
@@ -109,7 +109,7 @@ class ExpressionStatement(Statement):
         return self.token.literal
 
     def to_string(self) -> str:
-        if not self.expression:
+        if self.expression:
             return self.expression.to_string()
         return ''
 
@@ -138,4 +138,4 @@ class InfixExpression(Expression):
         self.right = right
 
     def to_string(self):
-        return "(" + self.left.to_string() + " " + self.operator + " " + self.right.to_string() + ")"
+        return '(' + self.left.to_string() + ' ' + self.operator + ' ' + self.right.to_string() + ')'

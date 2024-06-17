@@ -49,6 +49,11 @@ class Lexer:
     def token_lookup(self, key: Char) -> _token.Token:
         simple_token_type_map: dict[Char, _token.TokenType] = {
             Char('+'): _token.TokenType.PLUS,
+            Char('*'): _token.TokenType.ASTERISK,
+            Char('/'): _token.TokenType.SLASH,
+            Char('-'): _token.TokenType.MINUS,
+            Char('>'): _token.TokenType.GT,
+            Char('<'): _token.TokenType.LT,
             Char('('): _token.TokenType.LPAREN,
             Char(')'): _token.TokenType.RPAREN,
             Char('{'): _token.TokenType.LBRACE,

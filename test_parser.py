@@ -39,6 +39,7 @@ def test_int_parsing():
     assert isinstance(expression_statement, _ast.ExpressionStatement)
     assert isinstance(expression_statement.expression, _ast.IntegerLiteral)
 
+
 def test_prefix_expression_parsing():
     lexer = _lexer.Lexer('!true;')
     parser = _parser.Parser(lexer)
@@ -47,3 +48,51 @@ def test_prefix_expression_parsing():
     assert isinstance(expression_statement, _ast.ExpressionStatement)
     assert isinstance(expression_statement.expression, _ast.PrefixExpression)
 
+
+def test_infix_expression_parsing():
+    test_cases = [
+        ('!-a', '(!(-a))'),
+        ('a+b+c', '((a + b) + c)'),
+        (
+            'a + b - c',
+            '((a + b) - c)',
+        ),
+        (
+            'a * b * c',
+            '((a * b) * c)',
+        ),
+        (
+            'a * b / c',
+            '((a * b) / c)',
+        ),
+        (
+            'a + b / c',
+            '(a + (b / c))',
+        ),
+        (
+            'a + b * c + d / e - f',
+            '(((a + (b * c)) + (d / e)) - f)',
+        ),
+        (
+            '3 + 4; -5 * 5',
+            '(3 + 4)((-5) * 5)',
+        ),
+        (
+            '5 > 4 == 3 < 4',
+            '((5 > 4) == (3 < 4))',
+        ),
+        (
+            '5 < 4 != 3 > 4',
+            '((5 < 4) != (3 > 4))',
+        ),
+        (
+            '3 + 4 * 5 == 3 * 1 + 4 * 5',
+            '((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))',
+        ),
+    ]
+    for test_case in test_cases:
+        lexer = _lexer.Lexer(test_case[0])
+        parser = _parser.Parser(lexer)
+        program = parser.parse_program()
+        assert program.statements
+        assert program.to_string() == test_case[1]
