@@ -8,6 +8,8 @@ import enum
 import types
 import typing
 
+import typing_extensions
+
 import _abstract_syntax_tree as _ast
 import _lexer
 import _token
@@ -84,8 +86,6 @@ class Parser:
             }
         )
 
-    def _parse_boolean(self): ...
-
     def _parse_group_expression(self): ...
 
     def _parse_if_expression(self): ...
@@ -102,28 +102,30 @@ class Parser:
 
     def _parse_index_expression(self): ...
 
+    def _parse_boolean(self):
+        return _ast.Boolean(token=self._current_token, value=self._current_token.token_type == _token.TokenType.TRUE)
+
     def _parse_integer_literal(self):
         return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
 
     def _parse_prefix_expression(self):
         current_token = self._current_token
-        self.next_token()
         return _ast.PrefixExpression(
-            current_token, operator=current_token.literal, right=self._parse_expression(Precedence.PREFIX)
+            current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX)
         )
 
     def _parse_infix_expression(self, left: _ast.Expression):
         current_token = self._current_token
         precedence = precendence_map.get(self._current_token.token_type) or Precedence.LOWEST
-        self.next_token()
 
         return _ast.InfixExpression(
-            token=current_token, operator=current_token.literal, left=left, right=self._parse_expression(precedence)
+            token=current_token, operator=current_token.literal, left=left, right=self.next_token()._parse_expression(precedence)
         )
 
-    def next_token(self):
+    def next_token(self) -> typing_extensions.Self:
         self._current_token = self._peek_token
         self._peek_token = self.lexer.next_token()
+        return self
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
         program = _ast.Program([])
@@ -172,9 +174,8 @@ class Parser:
 
     def _parse_return_statement(self):
         token = self._current_token
-        self.next_token()
 
-        return_value = self._parse_expression_statement()
+        return_value = self.next_token()._parse_expression_statement()
 
         if self._peek_token.token_type == _token.TokenType.SEMICOLON:
             self.next_token()

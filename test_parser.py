@@ -41,12 +41,23 @@ def test_int_parsing():
 
 
 def test_prefix_expression_parsing():
-    lexer = _lexer.Lexer('!true;')
-    parser = _parser.Parser(lexer)
-    program = parser.parse_program()
-    expression_statement = program.statements[0]
-    assert isinstance(expression_statement, _ast.ExpressionStatement)
-    assert isinstance(expression_statement.expression, _ast.PrefixExpression)
+    test_cases = [
+        ('!5;', '!', _ast.IntegerLiteral),
+        ('-15;', '-', _ast.IntegerLiteral),
+        ('!foobar;', '!', _ast.Identifier),
+        ('-foobar;', '-', _ast.Identifier),
+        ('!true;', '!', _ast.Boolean),
+        ('!false;', '!', _ast.Boolean),
+    ]
+    for test_case in test_cases:
+        lexer = _lexer.Lexer(test_case[0])
+        parser = _parser.Parser(lexer)
+        program = parser.parse_program()
+        expression_statement = program.statements[0]
+        assert isinstance(expression_statement, _ast.ExpressionStatement)
+        assert isinstance(expression_statement.expression, _ast.PrefixExpression)
+        assert isinstance(expression_statement.expression.right, test_case[2])
+        assert expression_statement.expression.operator == test_case[1]
 
 
 def test_infix_expression_parsing():

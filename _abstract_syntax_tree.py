@@ -114,7 +114,7 @@ class ExpressionStatement(Statement):
         return ''
 
 
-class IntegerLiteral(BaseNode):
+class IntegerLiteral(Expression):
     def __init__(self, token: Token, value: int):
         self.token = token
         self.value = value
@@ -139,3 +139,8 @@ class InfixExpression(Expression):
 
     def to_string(self):
         return '(' + self.left.to_string() + ' ' + self.operator + ' ' + self.right.to_string() + ')'
+
+class Boolean(Expression):
+    def __init__(self, token: Token, value: bool):
+        self.token = token
+        self.value = value
