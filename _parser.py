@@ -24,6 +24,20 @@ class Precedence(enum.IntEnum):
     CALL = 7
 
 
+precendence_map = types.MappingProxyType(
+    {
+        _token.TokenType.EQ: Precedence.EQUALS,
+        _token.TokenType.NOT_EQ: Precedence.EQUALS,
+        _token.TokenType.LT: Precedence.LESSGREATER,
+        _token.TokenType.GT: Precedence.LESSGREATER,
+        _token.TokenType.PLUS: Precedence.SUM,
+        _token.TokenType.MINUS: Precedence.SUM,
+        _token.TokenType.SLASH: Precedence.PRODUCT,
+        _token.TokenType.ASTERISK: Precedence.PRODUCT,
+    }
+)
+
+
 class Parser:
     def __init__(self, lexer: _lexer.Lexer):
         self.lexer = lexer
@@ -73,7 +87,10 @@ class Parser:
     def _parse_integer_literal(self):
         return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
 
-    def _parse_prefix_expression(self): ...
+    def _parse_prefix_expression(self):
+        current_token = self._current_token
+        self.next_token()
+        return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self._parse_expression(Precedence.PREFIX))
 
     def _parse_boolean(self): ...
 

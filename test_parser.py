@@ -38,3 +38,12 @@ def test_int_parsing():
     expression_statement = program.statements[0]
     assert isinstance(expression_statement, _ast.ExpressionStatement)
     assert isinstance(expression_statement.expression, _ast.IntegerLiteral)
+
+def test_prefix_expression_parsing():
+    lexer = _lexer.Lexer('!true;')
+    parser = _parser.Parser(lexer)
+    program = parser.parse_program()
+    expression_statement = program.statements[0]
+    assert isinstance(expression_statement, _ast.ExpressionStatement)
+    assert isinstance(expression_statement.expression, _ast.PrefixExpression)
+

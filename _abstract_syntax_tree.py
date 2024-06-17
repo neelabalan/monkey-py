@@ -113,7 +113,29 @@ class ExpressionStatement(Statement):
             return self.expression.to_string()
         return ''
 
+
 class IntegerLiteral(BaseNode):
     def __init__(self, token: Token, value: int):
         self.token = token
         self.value = value
+
+
+class PrefixExpression(Expression):
+    def __init__(self, token: Token, operator: str, right: Expression):
+        self.token = token
+        self.operator = operator
+        self.right = right
+
+    def to_string(self) -> str:
+        return '(' + self.operator + self.right.to_string() + ')'
+
+
+class InfixExpression(Expression):
+    def __init__(self, token: Token, left: Expression, operator: str, right: Expression):
+        self.token = token
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def to_string(self):
+        return "(" + self.left.to_string() + " " + self.operator + " " + self.right.to_string() + ")"
