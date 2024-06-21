@@ -2,3 +2,5 @@
 
 
 Run tests with `pytest .`
+
+For specific test case `pytest -q -s test_parser.py::test_let_statements`

@@ -25,14 +25,17 @@ class Tracer:
 
     def trace(self, func):
         def wrapper(parser, *args, **kwargs):
-            log.info('    ' * self.indent_level + f'BEGIN {func.__name__}')
+            trace_log.info('    ' * self.indent_level + f'BEGIN {func.__name__}')
             self.indent_level += 1
             result = func(parser, *args, **kwargs)
             self.indent_level -= 1
-            log.info('    ' * self.indent_level + f'END {func.__name__}')
+            trace_log.info('    ' * self.indent_level + f'END {func.__name__}')
             return result
 
         return wrapper
+
+    def reset(self):
+        self.indent_level = 0
 
 
 class Precedence(enum.IntEnum):
@@ -70,6 +73,7 @@ class Parser:
 
         self.next_token()
         self.next_token()
+        self.tracer.reset()
 
         self._register_infix_parse_functions()
         self._register_prefix_parse_functions()
@@ -152,6 +156,7 @@ class Parser:
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
         log.debug(f'source code - {self.lexer.source_code}')
+        trace_log.info(f'source code - {self.lexer.source_code}')
         program = _ast.Program([])
         while self._current_token.token_type not in (_token.TokenType.EOF, _token.TokenType.ILLEGAL):
             statement = self._parse_statement()
