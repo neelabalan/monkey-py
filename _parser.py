@@ -5,6 +5,7 @@
 # analyser, which creates tokens from the sequence of input characters
 
 import enum
+import logging
 import types
 import typing
 
@@ -13,6 +14,8 @@ import typing_extensions
 import _abstract_syntax_tree as _ast
 import _lexer
 import _token
+
+log = logging.getLogger(__name__)
 
 
 class Precedence(enum.IntEnum):
@@ -128,6 +131,7 @@ class Parser:
         return self
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
+        log.debug(f'source code - {self.lexer.source_code}')
         program = _ast.Program([])
         while self._current_token.token_type not in (_token.TokenType.EOF, _token.TokenType.ILLEGAL):
             statement = self._parse_statement()
@@ -137,6 +141,7 @@ class Parser:
         return program
 
     def _parse_statement(self) -> typing.Optional[_ast.Statement]:
+        log.debug(f"(parse statement) - {self._current_token=}")
         match self._current_token.token_type:
             case _token.TokenType.LET:
                 return self._parse_let_statement()
@@ -147,6 +152,7 @@ class Parser:
 
     def _parse_expression(self, precendence: Precedence) -> _ast.Expression:
         prefix = self.prefix_parse_functions.get(self._current_token.token_type)
+        log.debug(f"(parse expression) - {self._current_token=}")
         if not prefix:
             return None
         left_exp = prefix()
@@ -155,6 +161,7 @@ class Parser:
             self._peek_token.token_type, Precedence.LOWEST
         ):
             infix = self.infix_parse_functions.get(self._peek_token.token_type)
+            log.debug(f"(parse expression) - {self._peek_token=}")
             if not infix:
                 return left_exp
             self.next_token()
@@ -165,6 +172,7 @@ class Parser:
         return _ast.Identifier(self._current_token, value=self._current_token.literal)
 
     def _parse_expression_statement(self) -> _ast.Expression:
+        log.debug(f'(parse expression statement) - {self._current_token=}')
         statement = _ast.ExpressionStatement(
             token=self._current_token, expression=self._parse_expression(Precedence.LOWEST)
         )
