@@ -16,6 +16,23 @@ import _lexer
 import _token
 
 log = logging.getLogger(__name__)
+trace_log = logging.getLogger('tracelogs')
+
+
+class Tracer:
+    def __init__(self):
+        self.indent_level = 0
+
+    def trace(self, func):
+        def wrapper(parser, *args, **kwargs):
+            log.info('    ' * self.indent_level + f'BEGIN {func.__name__}')
+            self.indent_level += 1
+            result = func(parser, *args, **kwargs)
+            self.indent_level -= 1
+            log.info('    ' * self.indent_level + f'END {func.__name__}')
+            return result
+
+        return wrapper
 
 
 class Precedence(enum.IntEnum):
@@ -44,6 +61,8 @@ precendence_map = types.MappingProxyType(
 
 
 class Parser:
+    tracer = Tracer()
+
     def __init__(self, lexer: _lexer.Lexer):
         self.lexer = lexer
         self._current_token = None
@@ -105,25 +124,26 @@ class Parser:
 
     def _parse_index_expression(self): ...
 
+    @tracer.trace
     def _parse_boolean(self):
         return _ast.Boolean(token=self._current_token, value=self._current_token.token_type == _token.TokenType.TRUE)
 
+    @tracer.trace
     def _parse_integer_literal(self):
         return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
 
+    @tracer.trace
     def _parse_prefix_expression(self):
         current_token = self._current_token
-        return _ast.PrefixExpression(
-            current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX)
-        )
+        return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX))
 
+
+    @tracer.trace
     def _parse_infix_expression(self, left: _ast.Expression):
         current_token = self._current_token
         precedence = precendence_map.get(self._current_token.token_type) or Precedence.LOWEST
 
-        return _ast.InfixExpression(
-            token=current_token, operator=current_token.literal, left=left, right=self.next_token()._parse_expression(precedence)
-        )
+        return _ast.InfixExpression(token=current_token, operator=current_token.literal, left=left, right=self.next_token()._parse_expression(precedence))
 
     def next_token(self) -> typing_extensions.Self:
         self._current_token = self._peek_token
@@ -140,8 +160,9 @@ class Parser:
             self.next_token()
         return program
 
+    @tracer.trace
     def _parse_statement(self) -> typing.Optional[_ast.Statement]:
-        log.debug(f"(parse statement) - {self._current_token=}")
+        log.debug(f'(parse statement) - {self._current_token=}')
         match self._current_token.token_type:
             case _token.TokenType.LET:
                 return self._parse_let_statement()
@@ -150,36 +171,36 @@ class Parser:
             case _:
                 return self._parse_expression_statement()
 
+    @tracer.trace
     def _parse_expression(self, precendence: Precedence) -> _ast.Expression:
         prefix = self.prefix_parse_functions.get(self._current_token.token_type)
-        log.debug(f"(parse expression) - {self._current_token=}")
+        log.debug(f'(parse expression) - {self._current_token=}')
         if not prefix:
             return None
         left_exp = prefix()
 
-        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(
-            self._peek_token.token_type, Precedence.LOWEST
-        ):
+        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(self._peek_token.token_type, Precedence.LOWEST):
             infix = self.infix_parse_functions.get(self._peek_token.token_type)
-            log.debug(f"(parse expression) - {self._peek_token=}")
+            log.debug(f'(parse expression) - {self._peek_token=}')
             if not infix:
                 return left_exp
             self.next_token()
             left_exp = infix(left_exp)
         return left_exp
 
+    @tracer.trace
     def _parse_identifier(self) -> _ast.Expression:
         return _ast.Identifier(self._current_token, value=self._current_token.literal)
 
+    @tracer.trace
     def _parse_expression_statement(self) -> _ast.Expression:
         log.debug(f'(parse expression statement) - {self._current_token=}')
-        statement = _ast.ExpressionStatement(
-            token=self._current_token, expression=self._parse_expression(Precedence.LOWEST)
-        )
+        statement = _ast.ExpressionStatement(token=self._current_token, expression=self._parse_expression(Precedence.LOWEST))
         if self._peek_token.token_type == _token.TokenType.SEMICOLON:
             self.next_token()
         return statement
 
+    @tracer.trace
     def _parse_return_statement(self):
         token = self._current_token
 
@@ -196,6 +217,7 @@ class Parser:
         else:
             raise SyntaxError(f'Unexpected {token_type}')
 
+    @tracer.trace
     def _parse_let_statement(self) -> typing.Optional[_ast.LetStatement]:
         token = self._current_token
 
