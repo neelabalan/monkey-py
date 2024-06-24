@@ -107,3 +107,26 @@ def test_infix_expression_parsing():
         program = parser.parse_program()
         assert program.statements
         assert program.to_string() == test_case[1]
+
+
+def test_group_expression():
+    test_cases = [
+        (
+            '2 / (5 + 5)',
+            '(2 / (5 + 5))',
+        ),
+        (
+            '-(5 + 5)',
+            '(-(5 + 5))',
+        ),
+        (
+            '!(true == true)',
+            '(!(true == true))',
+        ),
+    ]
+    for test_case in test_cases:
+        lexer = _lexer.Lexer(test_case[0])
+        parser = _parser.Parser(lexer)
+        program = parser.parse_program()
+        assert program.statements
+        assert program.to_string() == test_case[1]

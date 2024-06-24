@@ -18,6 +18,9 @@ import _token
 log = logging.getLogger(__name__)
 trace_log = logging.getLogger('tracelogs')
 
+# log.setLevel(logging.CRITICAL + 1)
+trace_log.setLevel(logging.CRITICAL + 1)
+
 
 class Tracer:
     def __init__(self):
@@ -25,11 +28,11 @@ class Tracer:
 
     def trace(self, func):
         def wrapper(parser, *args, **kwargs):
-            trace_log.info('    ' * self.indent_level + f'BEGIN {func.__name__}')
+            trace_log.debug('    ' * self.indent_level + f'BEGIN {func.__name__}')
             self.indent_level += 1
             result = func(parser, *args, **kwargs)
             self.indent_level -= 1
-            trace_log.info('    ' * self.indent_level + f'END {func.__name__}')
+            trace_log.debug('    ' * self.indent_level + f'END {func.__name__}')
             return result
 
         return wrapper
@@ -112,8 +115,6 @@ class Parser:
             }
         )
 
-    def _parse_group_expression(self): ...
-
     def _parse_if_expression(self): ...
 
     def _parse_function_literal(self): ...
@@ -129,18 +130,25 @@ class Parser:
     def _parse_index_expression(self): ...
 
     @tracer.trace
-    def _parse_boolean(self):
+    def _parse_group_expression(self) -> _ast.Expression | None:
+        self.next_token()
+        exp = self._parse_expression(Precedence.LOWEST)
+        if not self._peek_token.token_type == _token.TokenType.RPAREN:
+            return None
+        return exp
+
+    @tracer.trace
+    def _parse_boolean(self) -> _ast.Boolean:
         return _ast.Boolean(token=self._current_token, value=self._current_token.token_type == _token.TokenType.TRUE)
 
     @tracer.trace
-    def _parse_integer_literal(self):
+    def _parse_integer_literal(self) -> _ast.IntegerLiteral:
         return _ast.IntegerLiteral(token=self._current_token, value=int(self._current_token.literal))
 
     @tracer.trace
-    def _parse_prefix_expression(self):
+    def _parse_prefix_expression(self) -> _ast.PrefixExpression:
         current_token = self._current_token
         return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX))
-
 
     @tracer.trace
     def _parse_infix_expression(self, left: _ast.Expression):
@@ -156,7 +164,7 @@ class Parser:
 
     def parse_program(self) -> typing.Optional[_ast.Program]:
         log.debug(f'source code - {self.lexer.source_code}')
-        trace_log.info(f'source code - {self.lexer.source_code}')
+        trace_log.debug(f'source code - {self.lexer.source_code}')
         program = _ast.Program([])
         while self._current_token.token_type not in (_token.TokenType.EOF, _token.TokenType.ILLEGAL):
             statement = self._parse_statement()
@@ -206,7 +214,7 @@ class Parser:
         return statement
 
     @tracer.trace
-    def _parse_return_statement(self):
+    def _parse_return_statement(self) -> _ast.ReturnStatement:
         token = self._current_token
 
         return_value = self.next_token()._parse_expression_statement()
@@ -215,7 +223,7 @@ class Parser:
             self.next_token()
         return _ast.ReturnStatement(token, return_value)
 
-    def _expect_peek(self, token_type: _token.TokenType) -> bool:
+    def _expect_peek(self, token_type: _token.TokenType) -> bool | None:
         if self._peek_token.token_type == token_type:
             self.next_token()
             return True

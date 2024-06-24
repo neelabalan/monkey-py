@@ -6,13 +6,13 @@ format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
 [handlers.console]
 class = "logging.StreamHandler"
-level = "INFO"
+level = "DEBUG"
 formatter = "standard"
 stream = "ext://sys.stdout"
 
 [handlers.file]
 class = "logging.handlers.RotatingFileHandler"
-level = "INFO"
+level = "DEBUG"
 formatter = "standard"
 filename = "logs.log"
 maxBytes = 1048576
