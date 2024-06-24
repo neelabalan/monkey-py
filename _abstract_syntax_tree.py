@@ -1,4 +1,5 @@
 import abc
+import typing
 
 from _token import Token
 
@@ -137,7 +138,7 @@ class InfixExpression(Expression):
         self.operator = operator
         self.right = right
 
-    def to_string(self):
+    def to_string(self) -> str:
         return '(' + self.left.to_string() + ' ' + self.operator + ' ' + self.right.to_string() + ')'
 
 
@@ -145,3 +146,26 @@ class Boolean(Expression):
     def __init__(self, token: Token, value: bool):
         self.token = token
         self.value = value
+
+
+class BlockStatement(Statement):
+    def __init__(self, token: Token, statements: list[Statement]):
+        super(BlockStatement, self).__init__(token)
+        self.statements = statements
+
+    def to_string(self):
+        return ''.join([statement.to_string() for statement in self.statements])
+
+
+class IfExpression(Expression):
+    def __init__(self, token: Token, condition: Expression, consequence: BlockStatement, alternative: BlockStatement):
+        self.token = token
+        self.condition = condition
+        self.consquence = consequence
+        self.alternative = alternative
+
+    def to_string(self) -> str:
+        alternative_str = ''
+        if self.alternative:
+            alternative_str = 'else ' + self.alternative.to_string()
+        return 'if' + self.condition.to_string() + ' ' + self.consquence.to_string() + alternative_str
