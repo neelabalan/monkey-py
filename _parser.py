@@ -148,14 +148,21 @@ class Parser:
     @tracer.trace
     def _parse_prefix_expression(self) -> _ast.PrefixExpression:
         current_token = self._current_token
-        return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX))
+        return _ast.PrefixExpression(
+            current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX)
+        )
 
     @tracer.trace
     def _parse_infix_expression(self, left: _ast.Expression):
         current_token = self._current_token
         precedence = precendence_map.get(self._current_token.token_type) or Precedence.LOWEST
 
-        return _ast.InfixExpression(token=current_token, operator=current_token.literal, left=left, right=self.next_token()._parse_expression(precedence))
+        return _ast.InfixExpression(
+            token=current_token,
+            operator=current_token.literal,
+            left=left,
+            right=self.next_token()._parse_expression(precedence),
+        )
 
     def next_token(self) -> typing_extensions.Self:
         self._current_token = self._peek_token
@@ -192,7 +199,9 @@ class Parser:
             return None
         left_exp = prefix()
 
-        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(self._peek_token.token_type, Precedence.LOWEST):
+        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(
+            self._peek_token.token_type, Precedence.LOWEST
+        ):
             infix = self.infix_parse_functions.get(self._peek_token.token_type)
             log.debug(f'(parse expression) - {self._peek_token=}')
             if not infix:
@@ -208,7 +217,9 @@ class Parser:
     @tracer.trace
     def _parse_expression_statement(self) -> _ast.Expression:
         log.debug(f'(parse expression statement) - {self._current_token=}')
-        statement = _ast.ExpressionStatement(token=self._current_token, expression=self._parse_expression(Precedence.LOWEST))
+        statement = _ast.ExpressionStatement(
+            token=self._current_token, expression=self._parse_expression(Precedence.LOWEST)
+        )
         if self._peek_token.token_type == _token.TokenType.SEMICOLON:
             self.next_token()
         return statement
