@@ -130,3 +130,22 @@ def test_group_expression():
         program = parser.parse_program()
         assert program.statements
         assert program.to_string() == test_case[1]
+
+def test_if_else_expression():
+    source = """
+    let m = 0;
+    if (x<y) {
+      m =  x+y;
+    }
+    else {
+        m = x-y;
+    }
+"""
+
+    lexer = _lexer.Lexer(source)
+    parser = _parser.Parser(lexer)
+    program = parser.parse_program()
+    statement = program.statements[1]
+    assert isinstance(statement.expression, _ast.IfExpression)
+    assert statement.expression.condition.to_string() == '(x < y)'
+

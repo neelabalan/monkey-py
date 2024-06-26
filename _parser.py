@@ -115,7 +115,37 @@ class Parser:
             }
         )
 
-    def _parse_if_expression(self): ...
+    @tracer.trace
+    def _parse_if_expression(self) -> _ast.IfExpression:
+        current_token = self._current_token
+        if not self._expect_peek(_token.TokenType.LPAREN):
+            return
+        self.next_token()
+        condition = self._parse_expression(Precedence.LOWEST)
+        if not self._expect_peek(_token.TokenType.RPAREN) or not self._expect_peek(_token.TokenType.LBRACE):
+            return
+        consequence = self._parse_block_statement()
+
+        alternative = None
+        if self._peek_token.token_type == _token.TokenType.ELSE:
+            self.next_token()
+            if not self._expect_peek(_token.TokenType.LBRACE):
+                return
+            alternative = self._parse_block_statement()
+        return _ast.IfExpression(token=current_token, condition=condition, consequence=consequence, alternative=alternative)
+
+    @tracer.trace
+    def _parse_block_statement(self) -> _ast.BlockStatement:
+        current_token = self._current_token
+        statements = []
+        self.next_token()
+
+        while not self._current_token.token_type == _token.TokenType.RBRACE and not self._current_token.token_type == _token.TokenType.EOF:
+            statement = self._parse_statement()
+            if statement:
+                statements.append(statement)
+            self.next_token()
+        return _ast.BlockStatement(token=current_token, statements=statements)
 
     def _parse_function_literal(self): ...
 
@@ -148,9 +178,7 @@ class Parser:
     @tracer.trace
     def _parse_prefix_expression(self) -> _ast.PrefixExpression:
         current_token = self._current_token
-        return _ast.PrefixExpression(
-            current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX)
-        )
+        return _ast.PrefixExpression(current_token, operator=current_token.literal, right=self.next_token()._parse_expression(Precedence.PREFIX))
 
     @tracer.trace
     def _parse_infix_expression(self, left: _ast.Expression):
@@ -199,9 +227,7 @@ class Parser:
             return None
         left_exp = prefix()
 
-        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(
-            self._peek_token.token_type, Precedence.LOWEST
-        ):
+        while self._peek_token.token_type != _token.TokenType.SEMICOLON and precendence < precendence_map.get(self._peek_token.token_type, Precedence.LOWEST):
             infix = self.infix_parse_functions.get(self._peek_token.token_type)
             log.debug(f'(parse expression) - {self._peek_token=}')
             if not infix:
@@ -217,9 +243,7 @@ class Parser:
     @tracer.trace
     def _parse_expression_statement(self) -> _ast.Expression:
         log.debug(f'(parse expression statement) - {self._current_token=}')
-        statement = _ast.ExpressionStatement(
-            token=self._current_token, expression=self._parse_expression(Precedence.LOWEST)
-        )
+        statement = _ast.ExpressionStatement(token=self._current_token, expression=self._parse_expression(Precedence.LOWEST))
         if self._peek_token.token_type == _token.TokenType.SEMICOLON:
             self.next_token()
         return statement
